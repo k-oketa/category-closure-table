@@ -56,6 +56,7 @@ public class CategoryQueryTests {
 
     @Test
     void ある階層より下の階層をすべて参照する() {
+        var categoryId = 2L;
         var sql = """
                 select category.category_id,
                        category.category_name,
@@ -64,9 +65,10 @@ public class CategoryQueryTests {
                   from category
                   join category_path
                     on category.category_id = category_path.descendant
-                 where category_path.ancestor = 2
+                 where category_path.ancestor = ?
                 """;
         var result = jdbc.sql(sql)
+                .param(categoryId)
                 .query(Category.class)
                 .list();
         Assertions.assertEquals(new Category(4, "磁性流体"), result.get(0));
@@ -75,6 +77,7 @@ public class CategoryQueryTests {
 
     @Test
     void ある階層から見たときの最下層をすべて参照する() {
+        var categoryId = 1L;
         var sql = """
                 select category.category_id,
                        category.category_name,
@@ -85,10 +88,11 @@ public class CategoryQueryTests {
                          on category.category_id = desendant_path.descendant
                   left join category_path as ancestor_path
                          on category.category_id = ancestor_path.ancestor
-                 where desendant_path.ancestor = 1
+                 where desendant_path.ancestor = ?
                    and ancestor_path.ancestor is null
                 """;
         var result = jdbc.sql(sql)
+                .param(categoryId)
                 .query(Category.class)
                 .list();
         Assertions.assertEquals(new Category(4, "磁性流体"), result.get(0));
@@ -98,6 +102,7 @@ public class CategoryQueryTests {
 
     @Test
     void ある階層の一つ上の階層を参照する() {
+        var categoryId = 2L;
         var sql = """
                 select category.category_id,
                        category.category_name,
@@ -106,9 +111,10 @@ public class CategoryQueryTests {
                   from category
                   left join category_path
                          on category.category_id = category_path.ancestor
-                 where category_path.descendant = 2
+                 where category_path.descendant = ?
                 """;
         var result = jdbc.sql(sql)
+                .param(categoryId)
                 .query(Category.class)
                 .single();
         Assertions.assertEquals(new Category(1, "数学"), result);
